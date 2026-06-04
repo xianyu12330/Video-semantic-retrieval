@@ -3,9 +3,10 @@ from pathlib import Path
 import logging
 PROJECT_PATH = Path(__file__).parent
 VIDEO_PATH =  PROJECT_PATH/ "storage" / "videos"
+MODEL_PATH = PROJECT_PATH.parent / "model" / "large-v3"
 AUDIO_BUFFER = 5
 logging.info("Loading Faster-Whisper model...")
-model = WhisperModel("large-v3",device="cuda",compute_type="int8")
+model = WhisperModel(MODEL_PATH,device="cuda",compute_type="int8",local_files_only=True)
 
 def asr_extract(video_id:str,window_size = 5) ->dict:
     """
@@ -38,3 +39,11 @@ def asr_extract(video_id:str,window_size = 5) ->dict:
     for w_idx in window_text:
         window_text[w_idx] = " ".join(window_text[w_idx])
     return window_text
+
+if __name__ == '__main__':
+    test_video = VIDEO_PATH / "saikai.mp4"
+    results = asr_extract(str(test_video))
+    for w_idx, text in sorted(results.items()):
+        start_t = w_idx * 5
+        end_t = start_t + 5
+        print(f"[{start_t:02d}s - {end_t:02d}s] : {text}")
