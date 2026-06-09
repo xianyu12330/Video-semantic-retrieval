@@ -1,12 +1,16 @@
 from faster_whisper import WhisperModel
 from pathlib import Path
 import logging
-PROJECT_PATH = Path(__file__).parent
-VIDEO_PATH =  PROJECT_PATH/ "storage" / "videos"
-MODEL_PATH = PROJECT_PATH.parent / "model" / "large-v3"
+# 添加详细日志
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+PROJECT_PATH = Path(__file__).parent.parent
+VIDEO_PATH =  PROJECT_PATH/ "storage"
+MODEL_PATH = PROJECT_PATH.parent / "models" / "faster-whisper-large-v3"
 AUDIO_BUFFER = 5
 logging.info("Loading Faster-Whisper model...")
-model = WhisperModel(MODEL_PATH,device="cuda",compute_type="int8",local_files_only=True)
+model = WhisperModel(str(MODEL_PATH),device="cpu",compute_type="float16")
 
 def asr_extract(video_id:str,window_size = 5) ->dict:
     """
@@ -17,7 +21,7 @@ def asr_extract(video_id:str,window_size = 5) ->dict:
     """
     video_path = VIDEO_PATH / video_id
     # vad_filter=True过滤掉无声/噪音片段
-    segments,info = model.transcribe(str(video_path),beam_size=5,vad_filter=True)
+    segments,info = model.transcribe(str(video_path),beam_size=5,vad_filter=False)
     logging.info(f"Detected language '{info.language}' with probability {info.language_probability}")
 
     #存储文本
@@ -41,9 +45,7 @@ def asr_extract(video_id:str,window_size = 5) ->dict:
     return window_text
 
 if __name__ == '__main__':
-    test_video = VIDEO_PATH / "saikai.mp4"
+    test_video = VIDEO_PATH / "zhangshi.mp4"
     results = asr_extract(str(test_video))
     for w_idx, text in sorted(results.items()):
-        start_t = w_idx * 5
-        end_t = start_t + 5
-        print(f"[{start_t:02d}s - {end_t:02d}s] : {text}")
+        print(f"w_idx :{w_idx} its text is {text}")
