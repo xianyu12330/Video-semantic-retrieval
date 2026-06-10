@@ -7,7 +7,7 @@ import logging
 from typing import List, Optional, Dict
 from pathlib import Path
 PROJECT_PATH = Path(__file__).parent.parent
-MODEL_PATH = PROJECT_PATH.parent / "BAAI" / "bge-m3"
+MODEL_PATH = PROJECT_PATH.parent /"models"/"BAAI" / "bge-m3"
 
 class TextEmbedder:
     def __init__(self,mode_path:str = str(MODEL_PATH)):
@@ -54,14 +54,29 @@ class TextEmbedder:
     def process_window_dict(self,window_text:Dict[int,str])->Dict[int,np.ndarray]:
         window_array = {}
         for idx,text in window_text.items():
-            if text is None:
+            if not text:
                 continue
             if idx not in window_array:
                 window_array[idx] = self.encode([text])
         return window_array
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+    asr_text = {
+        0:"When I was young and lost",
+        1:"You showed up and had my doors unlocked",
+        3:"Like threads, petals unfold",
+        4:"",
+        5:"A red kawalanane shiko"
+    }
+    embedder = TextEmbedder(str(MODEL_PATH))
+    try:
+        embedder.load()
+        embed_dict = embedder.process_window_dict(asr_text)
+        for w_idx, vec in embed_dict.items():
+            print(f"Window {w_idx} Vector Shape: {vec.shape}")  # 预期打印 (1024,)
+    finally:
+        embedder.unload()
 
 
 

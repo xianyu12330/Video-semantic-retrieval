@@ -1,16 +1,12 @@
 from faster_whisper import WhisperModel
 from pathlib import Path
 import logging
-# 添加详细日志
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 PROJECT_PATH = Path(__file__).parent.parent
 VIDEO_PATH =  PROJECT_PATH/ "storage"
 MODEL_PATH = PROJECT_PATH.parent / "models" / "faster-whisper-large-v3"
 AUDIO_BUFFER = 5
 logging.info("Loading Faster-Whisper model...")
-model = WhisperModel(str(MODEL_PATH),device="cpu",compute_type="float16")
+model = WhisperModel(str(MODEL_PATH),device="cuda",compute_type="int8")
 
 def asr_extract(video_id:str,window_size = 5) ->dict:
     """
@@ -48,4 +44,4 @@ if __name__ == '__main__':
     test_video = VIDEO_PATH / "zhangshi.mp4"
     results = asr_extract(str(test_video))
     for w_idx, text in sorted(results.items()):
-        print(f"w_idx :{w_idx} its text is {text}")
+        print(f"w_idx:{w_idx},its text :{text}")

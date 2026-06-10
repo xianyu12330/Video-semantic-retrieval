@@ -11,6 +11,15 @@ ocr_model = PaddleOCR(
 )
 logging.info("PaddleOCR model loaded.")
 
+def clean_and_concat(text_set:set)->str:
+    valid_texts = []
+    for t in text_set:
+        t = t.strip()
+        if t.isdigit():continue
+        if len(t) <= 1 and not ('\u4e00' <= t <= '\u9fff'):continue
+        valid_texts.append(t)
+    return " ".join(valid_texts)
+
 def process_ocr(video_id:str,window_size:int = 5) ->dict:
     """
         对指定视频的关键帧进行 OCR 提取，并按时间窗口去重合并。
@@ -39,20 +48,24 @@ def process_ocr(video_id:str,window_size:int = 5) ->dict:
             frame_text = []
             if "rec_texts" and "rec_scores" in res_dict:
                 for text,score in zip(res_dict["rec_texts"],res_dict["rec_scores"]):
-                    print(f"text : {text} ,socre:{score}")
                     if score > 0.85:
                         frame_text.append(text)
 
             if window_idx not in window_text:
                 window_text[window_idx] = set()
+
             window_text[window_idx].update(frame_text)
+
         except Exception as e:
             logging.error(f"[{video_id}] OCR error on {img_file.name}: {str(e)}")
+    return clean_and_concat(window_text)
 
 
 
 if __name__ == '__main__':
-    test_id = "202abc3990af"
-    process_ocr(test_id)
+    test_id = "f75ea2bfc454"
+    ocr = process_ocr(test_id)
+    for idx,text in ocr.items():
+        print(f"window_idx:{idx} its text:{text}")
 
 
